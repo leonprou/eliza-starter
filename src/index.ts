@@ -34,6 +34,36 @@ import { fileURLToPath } from "url";
 import { character } from "./character.ts";
 import type { DirectClient } from "@ai16z/client-direct";
 
+import { Ensemble, TaskData } from "@ensemble-ai/sdk";
+import { ethers } from 'ethers';
+
+console.log('Ensemble', Ensemble);
+export const setupEnv = () => {
+  const provider = new ethers.JsonRpcProvider(process.env.NETWORK_RPC_URL!, undefined, { polling: true});
+  const pk = process.env.PRIVATE_KEY!;
+  const wallet = new ethers.Wallet(pk, provider);
+
+  return {
+    provider,
+    signer: wallet
+  };
+}
+
+
+const { signer } = setupEnv();
+
+const ensemble = new Ensemble({
+  taskRegistryAddress: process.env.TASK_REGISTRY_ADDRESS,
+  agentRegistryAddress: process.env.AGENT_REGISTRY_ADDRESS,
+  network: {
+    chainId: parseInt(process.env.NETWORK_CHAIN_ID),
+    name: process.env.NETWORK_NAME,
+    rpcUrl: process.env.NETWORK_RPC_URL,
+  },
+}, signer);
+
+ensemble.start();
+
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
 
@@ -242,6 +272,11 @@ function intializeDbCache(character: Character, db: IDatabaseCacheAdapter) {
   return cache;
 }
 
+
+// async function handleTask(taskId: string) {
+//   console.log('taskId', taskId);
+// }
+
 async function startAgent(character: Character, directClient: DirectClient) {
   try {
     character.id ??= stringToUuid(character.name);
@@ -266,7 +301,20 @@ async function startAgent(character: Character, directClient: DirectClient) {
     const clients = await initializeClients(character, runtime);
 
     directClient.registerAgent(runtime);
-
+    
+    ensemble.setOnNewTaskListener(async (task: TaskData) => {
+      console.log('task', task);
+      ensemble.sendProposal(task.id, '1');
+      // runtime.processActions()
+      // console.log('taskId', taskId);
+      // console.log('runtime', runtime);
+      // handleTask(taskId);
+    });
+    // ensemble.setOnNewTaskListener((taskId) => {
+    //   console.log('taskId', taskId);
+    //   console.log('runtime', runtime);
+    //   // handleTask(taskId);
+    // });
     return clients;
   } catch (error) {
     elizaLogger.error(
