@@ -433,8 +433,43 @@ async function startAgent(character: Character, directClient: DirectClient) {
 
     runtime.actions.map((a) => console.log(a.name + " " + a.description))
 
+    let task1 = null
+    
+    // New Tasks Handler 
+    ensemble.setOnNewTaskListener(async (task: TaskData) => {
+      console.log('task', task);
+      ensemble.sendProposal(task.id, '1');
+
+      task1 = task
+  
+    });
+
+    ensemble.setOnNewProposalListener(async (proposal: Proposal) => {
+      console.log('new task proposal!')
+      // console.log('taskId', taskId);
+      console.log('proposal', proposal);
+      console.log('task1', task1); 
+
+
+    // console.log('clients11', runtime.clients)
+        console.log('runtime.clients.twitter', runtime.clients.twitter)
+        console.log('runtime.clients.twitter.post', runtime.clients.twitter.post)
+        console.log('task1.prompt', task1.prompt)
+        runtime.character.topics = [task1.prompt]
+        await runtime.clients.twitter.post.generateNewTweet()
+    })
+
+    // task1 = {
+    //   owner: '0x2c37691967de1A1E4eE68ae4D745059720A6dB7F',
+    //   id: 9n,
+    //   prompt: 'Create a task',
+    //   taskType: 0n,
+    //   status: 0
+    // }
+
     try {
       await runtime.initialize();
+
     } catch (error) {
       elizaLogger.error("Failed to initialize runtime:", error);
       throw error;
