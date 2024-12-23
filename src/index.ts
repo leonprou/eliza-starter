@@ -4,6 +4,8 @@ import { AutoClientInterface } from "@ai16z/client-auto";
 import { DiscordClientInterface } from "@ai16z/client-discord";
 import { TelegramClientInterface } from "@ai16z/client-telegram";
 import { TwitterClientInterface } from "@ai16z/client-twitter";
+// import { AgentHubClientInterface } from "./client-agent-hub/src/index.ts";
+
 import {
     AgentRuntime,
     CacheManager,
@@ -24,13 +26,17 @@ import {
 } from "@ai16z/eliza";
 import { bootstrapPlugin } from "@ai16z/plugin-bootstrap";
 import { DirectClient } from "@ai16z/client-direct";
+import { createNodePlugin } from "@ai16z/plugin-node";
 import { solanaPlugin } from "@ai16z/plugin-solana";
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import yargs from "yargs";
+import dotenv from "dotenv";
 
 import { Ensemble, TaskData } from "@ensemble-ai/sdk";
+import { Proposal } from "@ensemble-ai/sdk/src/types";
 import { ethers } from 'ethers';
 
 console.log('Ensemble', Ensemble);
@@ -338,14 +344,25 @@ export async function initializeClients(
   }
 
   if (clientTypes.includes(Clients.TWITTER)) {
-      const twitterClient = await TwitterClientInterface.start(runtime);
+    const twitterClient = await TwitterClientInterface.start(runtime);
 
-      if (twitterClient) {
-          clients.twitter = twitterClient;
-          (twitterClient as any).enableSearch = !isFalsish(
-              getSecret(character, "TWITTER_SEARCH_ENABLE")
-          );
-      }
+    if (twitterClient) {
+        clients.twitter = twitterClient;
+        (twitterClient as any).enableSearch = !isFalsish(
+            getSecret(character, "TWITTER_SEARCH_ENABLE")
+        );
+    }
+}
+
+  if (clientTypes.includes(Clients.TWITTER)) {
+    // const agentHubClient = await AgentHubClientInterface.start(runtime);
+
+    // if (agentHubClient) {
+    //     clients.twitterClient = agentHubClient;
+    //     // (agentHubClient as any).enableSearch = !isFalsish(
+    //     //     getSecret(character, "TWITTER_SEARCH_ENABLE")
+    //     // );
+    // }
   }
 
   elizaLogger.log("client keys", Object.keys(clients));
@@ -459,13 +476,6 @@ async function startAgent(character: Character, directClient: DirectClient) {
         await runtime.clients.twitter.post.generateNewTweet()
     })
 
-    // task1 = {
-    //   owner: '0x2c37691967de1A1E4eE68ae4D745059720A6dB7F',
-    //   id: 9n,
-    //   prompt: 'Create a task',
-    //   taskType: 0n,
-    //   status: 0
-    // }
 
     try {
       await runtime.initialize();
@@ -488,11 +498,11 @@ async function startAgent(character: Character, directClient: DirectClient) {
       // console.log('runtime', runtime);
       // handleTask(taskId);
     });
-    // ensemble.setOnNewTaskListener((taskId) => {
-    //   console.log('taskId', taskId);
-    //   console.log('runtime', runtime);
-    //   // handleTask(taskId);
-    // });
+    ensemble.setOnNewTaskListener((taskId) => {
+      console.log('taskId', taskId);
+      console.log('runtime', runtime);
+      // handleTask(taskId);
+    });
     return clients;
   } catch (error) {
     elizaLogger.error(`Error starting agent for character ${character.name}:`, error);

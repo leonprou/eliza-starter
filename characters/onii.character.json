@@ -1,6 +1,6 @@
 {
   "name": "onii-chan.eth",
-  "clients": ["twitter"],
+  "clients": [],
   "modelProvider": "openai",
   "settings": {
     "secrets": {},

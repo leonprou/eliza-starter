@@ -47,6 +47,9 @@ dependencies:
   '@ai16z/plugin-starknet':
     specifier: v0.1.6-alpha.5
     version: 0.1.6-alpha.5(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26)(@types/node@22.10.2)(ethers@6.13.4)(qs@6.13.1)(react@18.3.1)(svelte@5.15.0)(typescript@5.7.2)(vue@3.5.13)(whatwg-url@7.1.0)
+  '@ensemble-ai/client-agent-hub':
+    specifier: file:./src/client-agent-hub
+    version: file:src/client-agent-hub(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26)(react@18.3.1)(svelte@5.15.0)(vue@3.5.13)(whatwg-url@7.1.0)
   '@ensemble-ai/sdk':
     specifier: ^0.1.4
     version: 0.1.4(@types/node@22.10.2)(ts-node@10.9.2)
@@ -14663,6 +14666,42 @@ packages:
 
   /zod@3.24.1:
     resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
+    dev: false
+
+  file:src/client-agent-hub(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26)(react@18.3.1)(svelte@5.15.0)(vue@3.5.13)(whatwg-url@7.1.0):
+    resolution: {directory: src/client-agent-hub, type: directory}
+    id: file:src/client-agent-hub
+    name: '@ensemble-ai/client-agent-hub'
+    peerDependencies:
+      whatwg-url: 7.1.0
+    dependencies:
+      '@ai16z/eliza': 0.1.6-alpha.5(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26)(react@18.3.1)(svelte@5.15.0)(vue@3.5.13)
+      agent-twitter-client: 0.0.16
+      glob: 11.0.0
+      whatwg-url: 7.1.0
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - '@google-cloud/vertexai'
+      - '@langchain/anthropic'
+      - '@langchain/aws'
+      - '@langchain/cohere'
+      - '@langchain/core'
+      - '@langchain/google-genai'
+      - '@langchain/google-vertexai'
+      - '@langchain/groq'
+      - '@langchain/mistralai'
+      - '@langchain/ollama'
+      - axios
+      - cheerio
+      - encoding
+      - peggy
+      - react
+      - solid-js
+      - sswr
+      - supports-color
+      - svelte
+      - typeorm
+      - vue
     dev: false
 
   github.com/discordjs/opus/31da49d8d2cc6c5a2ab1bfd332033ff7d5f9fb02:
