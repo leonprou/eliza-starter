@@ -4,7 +4,7 @@ import { AutoClientInterface } from "@ai16z/client-auto";
 import { DiscordClientInterface } from "@ai16z/client-discord";
 import { TelegramClientInterface } from "@ai16z/client-telegram";
 import { TwitterClientInterface } from "@ai16z/client-twitter";
-// import { AgentHubClientInterface } from "./client-agent-hub/src/index.ts";
+import { Ensemble } from "@ensemble-ai/sdk";
 
 import {
     AgentRuntime,
@@ -34,13 +34,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import yargs from "yargs";
 import dotenv from "dotenv";
-
-import { Ensemble, TaskData } from "@ensemble-ai/sdk";
-import { Proposal } from "@ensemble-ai/sdk/src/types";
 import { ethers } from 'ethers';
 
-console.log('Ensemble', Ensemble);
-export const setupEnv = () => {
+// Creating a signer with a private key
+export const createSigner = () => {
   const provider = new ethers.JsonRpcProvider(process.env.NETWORK_RPC_URL!, undefined, { polling: true});
   const pk = process.env.PRIVATE_KEY!;
   const wallet = new ethers.Wallet(pk, provider);
@@ -51,19 +48,28 @@ export const setupEnv = () => {
   };
 }
 
+// Creating the signer
+const { signer } = createSigner();
 
-const { signer } = setupEnv();
-
-const ensemble = new Ensemble({
+// Ensemble Config
+const config = {
   taskRegistryAddress: process.env.TASK_REGISTRY_ADDRESS,
   agentRegistryAddress: process.env.AGENT_REGISTRY_ADDRESS,
+  serviceRegistryAddress: process.env.SERVICE_REGISTRY_ADDRESS,
   network: {
     chainId: parseInt(process.env.NETWORK_CHAIN_ID),
     name: process.env.NETWORK_NAME,
     rpcUrl: process.env.NETWORK_RPC_URL,
   },
-}, signer);
+}
 
+// validating the config
+console.log({config})
+
+// creating the ensemble sdk
+const ensemble = new Ensemble(config, signer);
+
+// starting the sdk listener
 ensemble.start();
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -344,6 +350,7 @@ export async function initializeClients(
   }
 
   if (clientTypes.includes(Clients.TWITTER)) {
+    console.log('starting the twitter client')
     const twitterClient = await TwitterClientInterface.start(runtime);
 
     if (twitterClient) {
@@ -450,32 +457,23 @@ async function startAgent(character: Character, directClient: DirectClient) {
 
     runtime.actions.map((a) => console.log(a.name + " " + a.description))
 
-    let task1 = null
-    
-    // New Tasks Handler 
-    ensemble.setOnNewTaskListener(async (task: TaskData) => {
-      console.log('task', task);
-      ensemble.sendProposal(task.id, '1');
+    const executeTask = async (task) => {
+      console.log(`receieved a new task ${task.id} to the agent proposal ${task.proposalId} by user ${task.issuer}`)
+      console.log(`task prompt: ${task.prompt}`)
 
-      task1 = task
-  
-    });
+      // TODO: Validate the task and propmpt
 
-    ensemble.setOnNewProposalListener(async (proposal: Proposal) => {
-      console.log('new task proposal!')
-      // console.log('taskId', taskId);
-      console.log('proposal', proposal);
-      console.log('task1', task1); 
+      // Execute the task
+      runtime.character.topics = [task.prompt]
+      // TODO: function shall return the tweet or url
+      await runtime.clients.twitter.post.generateNewTweet()
 
+      // Task Completion
+      ensemble.completeTask(task.id, `Done tweet about topic: ${task.prompt}`)
+    }
 
-    // console.log('clients11', runtime.clients)
-        console.log('runtime.clients.twitter', runtime.clients.twitter)
-        console.log('runtime.clients.twitter.post', runtime.clients.twitter.post)
-        console.log('task1.prompt', task1.prompt)
-        runtime.character.topics = [task1.prompt]
-        await runtime.clients.twitter.post.generateNewTweet()
-    })
-
+    // Adding the executeTask function as a listener so it will be called when a new task is received
+    ensemble.setOnNewTaskListener(executeTask)
 
     try {
       await runtime.initialize();
@@ -489,20 +487,20 @@ async function startAgent(character: Character, directClient: DirectClient) {
     clients = Object.values(initializedClients);
     runtime.clients = initializedClients;
     directClient.registerAgent(runtime);
-    
-    ensemble.setOnNewTaskListener(async (task: TaskData) => {
-      console.log('task', task);
-      ensemble.sendProposal(task.id, '1');
-      // runtime.processActions()
-      // console.log('taskId', taskId);
-      // console.log('runtime', runtime);
-      // handleTask(taskId);
-    });
-    ensemble.setOnNewTaskListener((taskId) => {
-      console.log('taskId', taskId);
-      console.log('runtime', runtime);
-      // handleTask(taskId);
-    });
+
+    // ensemble.setOnNewTaskListener(async (task: TaskData) => {
+    //   console.log('task', task);
+    //   ensemble.sendProposal(task.id, '1');
+    //   // runtime.processActions()
+    //   // console.log('taskId', taskId);
+    //   // console.log('runtime', runtime);
+    //   // handleTask(taskId);
+    // });
+    // ensemble.setOnNewTaskListener((taskId) => {
+    //   console.log('taskId', taskId);
+    //   console.log('runtime', runtime);
+    //   // handleTask(taskId);
+    // });
     return clients;
   } catch (error) {
     elizaLogger.error(`Error starting agent for character ${character.name}:`, error);
