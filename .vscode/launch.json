@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "name": "Debug TypeScript",
+          "type": "node",
+          "request": "launch",
+          "runtimeArgs": ["-r", "ts-node/register"],
+          "args": ["${workspaceFolder}/src/index.ts"],
+          "cwd": "${workspaceRoot}",
+          "internalConsoleOptions": "openOnSessionStart",
+          "console": "integratedTerminal",
+          "sourceMaps": true,
+          "skipFiles": ["<node_internals>/**"]
+      },
+      {
+          "name": "Debug Current TS File",
+          "type": "node",
+          "request": "launch",
+          "runtimeArgs": ["-r", "ts-node/register"],
+          "args": ["${file}"],
+          "cwd": "${workspaceRoot}",
+          "internalConsoleOptions": "openOnSessionStart",
+          "console": "integratedTerminal",
+          "sourceMaps": true,
+          "skipFiles": ["<node_internals>/**"]
+      }
+  ]
+}
